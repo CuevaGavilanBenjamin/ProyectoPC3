@@ -64,10 +64,11 @@ ROOT_URLCONF = 'PC3_Interbank.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # <-- asegúrate de que esto esté así
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -161,3 +162,13 @@ CHANNEL_LAYERS = {
 }
 # Custom user model
 AUTH_USER_MODEL = 'users.Usuario'
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'no-reply@pc3.com'
+
+MENSAJE_EMPRESA_REGISTRADA = "Empresa registrada correctamente."
+
+ERRORES_VALIDACION = {
+    "correo": ["Este correo ya está registrado."],
+    "ruc": ["El RUC debe tener exactamente 11 dígitos numéricos."]
+}
