@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Empresa</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; margin: 0; }
+        .sidebar {
+            width: 240px; background: #00953b; color: #fff; height: 100vh; position: fixed; top: 0; left: 0;
+            padding-top: 2rem; box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+        }
+        .sidebar h2 { text-align: center; margin-bottom: 2rem; }
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar ul li { margin: 1.2rem 0; }
+        .sidebar ul li a {
+            color: #fff; text-decoration: none; font-weight: 500; padding: 0.7rem 2rem; display: block;
+            border-radius: 8px; transition: background 0.2s;
+        }
+        .sidebar ul li a:hover, .sidebar ul li a.active { background: #007a2f; }
+        .main-content {
+            margin-left: 260px; padding: 2.5rem 2rem;
+        }
+        .section { display: none; }
+        .section.active { display: block; }
+        h3 { color: #00953b; }
+        .mensaje {
+            margin-top: 1rem; padding: 0.7rem; border-radius: 5px; display: none;
+        }
+        .mensaje.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .mensaje.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Mi Empresa</h2>
+        <ul>
+            <li><a href="#" class="active" onclick="mostrarSeccion('perfil')">Perfil y Cuenta</a></li>
+            <li><a href="#" onclick="mostrarSeccion('usuarios')">Usuarios Internos</a></li>
+            <li><a href="#" onclick="mostrarSeccion('documentos')">Documentos</a></li>
+            <li><a href="#" onclick="mostrarSeccion('firmas')">Firma Electrónica</a></li>
+            <li><a href="#" onclick="mostrarSeccion('chat')">Chat y Soporte</a></li>
+            <li><a href="#" onclick="mostrarSeccion('estrategias')">Estrategias</a></li>
+            <li><a href="#" onclick="mostrarSeccion('reportes')">Reportes y Analíticas</a></li>
+            <li><a href="#" onclick="mostrarSeccion('notificaciones')">Notificaciones</a></li>
+            <li><a href="#" onclick="mostrarSeccion('integraciones')">Integraciones</a></li>
+            <li><a href="#" onclick="mostrarSeccion('configuracion')">Configuración</a></li>
+            <li><a href="#" onclick="mostrarSeccion('recursos')">Recursos y Capacitación</a></li>
+            <li><a href="/logout/">Cerrar sesión</a></li>
+        </ul>
+    </div>
+    <div class="main-content">
+        <div id="perfil" class="section active">
+            <h3>Gestión de Perfil y Cuenta</h3>
+            <form id="perfilForm">
+                <label>Razón Social</label>
+                <input type="text" id="razon_social" name="razon_social" required>
+                <label>RUC</label>
+                <input type="text" id="ruc" name="ruc" readonly>
+                <label>Representante</label>
+                <input type="text" id="representante" name="representante" required>
+                <label>Correo</label>
+                <input type="email" id="correo" name="correo" readonly>
+                <label>Dirección</label>
+                <input type="text" id="direccion" name="direccion">
+                <label>Teléfono</label>
+                <input type="text" id="telefono" name="telefono">
+                <button type="submit" class="btn">Guardar cambios</button>
+                <div id="perfilMensaje" class="mensaje"></div>
+            </form>
+        </div>
+        <div id="usuarios" class="section">
+            <h3>Gestión de Usuarios Internos</h3>
+            <p>Administra usuarios de tu empresa, roles y permisos.</p>
+        </div>
+        <div id="documentos" class="section">
+            <h3>Gestión de Documentos</h3>
+            <form id="subirDocForm" enctype="multipart/form-data">
+                <label>Nombre del documento</label>
+                <input type="text" name="nombre" required>
+                <label>Archivo</label>
+                <input type="file" name="archivo" required>
+                <button type="submit" class="btn">Subir documento</button>
+                <div id="docMensaje" class="mensaje"></div>
+            </form>
+            <hr>
+            <h4>Mis documentos</h4>
+            <ul id="listaDocs"></ul>
+        </div>
+        <div id="firmas" class="section">
+            <h3>Firma Electrónica</h3>
+            <p>Gestiona flujos de firma y certificados.</p>
+        </div>
+        <div id="chat" class="section">
+            <h3>Chat, Soporte y FAQs</h3>
+            <p>Chatea con soporte, mentores y consulta la base de conocimientos.</p>
+        </div>
+        <div id="estrategias" class="section">
+            <h3>Sugerencias de Estrategias de Crecimiento</h3>
+            <p>Recibe recomendaciones y haz seguimiento a tus planes de acción.</p>
+        </div>
+        <div id="reportes" class="section">
+            <h3>Reportes y Analíticas</h3>
+            <p>Visualiza KPIs, métricas y exporta reportes.</p>
+        </div>
+        <div id="notificaciones" class="section">
+            <h3>Notificaciones y Alertas</h3>
+            <p>Configura y revisa tus notificaciones.</p>
+        </div>
+        <div id="integraciones" class="section">
+            <h3>Integraciones Externas</h3>
+            <p>Conecta tu cuenta con SUNAT, bancos, CRM y más.</p>
+        </div>
+        <div id="configuracion" class="section">
+            <h3>Configuración Avanzada</h3>
+            <p>Personaliza roles, permisos y la apariencia de tu panel.</p>
+        </div>
+        <div id="recursos" class="section">
+            <h3>Centro de Recursos y Capacitación</h3>
+            <p>Accede a plantillas, guías, videos y artículos educativos.</p>
+        </div>
+    </div>
+    <script>
+        function mostrarSeccion(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.sidebar ul li a').forEach(a => a.classList.remove('active'));
+            document.querySelector('.sidebar ul li a[onclick*="' + id + '"]').classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar datos actuales
+            fetch('/empresas/perfil/')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('razon_social').value = data.razon_social || '';
+                    document.getElementById('ruc').value = data.ruc || '';
+                    document.getElementById('representante').value = data.representante || '';
+                    document.getElementById('correo').value = data.correo || '';
+                    document.getElementById('direccion').value = data.direccion || '';
+                    document.getElementById('telefono').value = data.telefono || '';
+                });
+
+            // Guardar cambios
+            document.getElementById('perfilForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const mensaje = document.getElementById('perfilMensaje');
+                mensaje.className = 'mensaje';
+                mensaje.style.display = 'none';
+                try {
+                    const response = await fetch('/empresas/perfil/', {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        mensaje.textContent = result.mensaje;
+                        mensaje.classList.add('success');
+                    } else {
+                        mensaje.textContent = result.error || 'Error al actualizar.';
+                        mensaje.classList.add('error');
+                    }
+                    mensaje.style.display = 'block';
+                } catch {
+                    mensaje.textContent = 'Error de conexión.';
+                    mensaje.classList.add('error');
+                    mensaje.style.display = 'block';
+                }
+            });
+
+            // Documentos
+            function cargarDocumentos() {
+                fetch('/documentos/empresa/')
+                    .then(r => r.json())
+                    .then(data => {
+                        const ul = document.getElementById('listaDocs');
+                        ul.innerHTML = '';
+                        data.forEach(doc => {
+                            ul.innerHTML += `<li>
+                                <a href="${doc.archivo}" target="_blank">${doc.nombre}</a>
+                                <span style="color:#888;"> (${doc.fecha_subida})</span>
+                            </li>`;
+                        });
+                    });
+            }
+            document.getElementById('subirDocForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const mensaje = document.getElementById('docMensaje');
+                mensaje.className = 'mensaje';
+                mensaje.style.display = 'none';
+                try {
+                    const response = await fetch('/documentos/empresa/', {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        mensaje.textContent = result.mensaje;
+                        mensaje.classList.add('success');
+                        cargarDocumentos();
+                    } else {
+                        mensaje.textContent = result.error || 'Error al subir.';
+                        mensaje.classList.add('error');
+                    }
+                    mensaje.style.display = 'block';
+                } catch {
+                    mensaje.textContent = 'Error de conexión.';
+                    mensaje.classList.add('error');
+                    mensaje.style.display = 'block';
+                }
+            });
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            cargarDocumentos();
+        });
+    </script>
+</body>
+</html>
