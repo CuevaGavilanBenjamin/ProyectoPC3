@@ -35,7 +35,6 @@
         <h2>Mi Empresa</h2>
         <ul>
             <li><a href="#" class="active" onclick="mostrarSeccion('perfil')">Perfil y Cuenta</a></li>
-            <li><a href="#" onclick="mostrarSeccion('usuarios')">Usuarios Internos</a></li>
             <li><a href="#" onclick="mostrarSeccion('documentos')">Documentos</a></li>
             <li><a href="#" onclick="mostrarSeccion('firmas')">Firma Electrónica</a></li>
             <li><a href="#" onclick="mostrarSeccion('chat')">Chat y Soporte</a></li>
@@ -68,10 +67,7 @@
                 <div id="perfilMensaje" class="mensaje"></div>
             </form>
         </div>
-        <div id="usuarios" class="section">
-            <h3>Gestión de Usuarios Internos</h3>
-            <p>Administra usuarios de tu empresa, roles y permisos.</p>
-        </div>
+
         <div id="documentos" class="section">
             <h3>Gestión de Documentos</h3>
             <form id="subirDocForm" enctype="multipart/form-data">
@@ -85,6 +81,15 @@
             <hr>
             <h4>Mis documentos</h4>
             <ul id="listaDocs"></ul>
+            <h4>Generar documento PDF</h4>
+            <form id="pdfForm">
+                <label>Título</label>
+                <input type="text" name="nombre" required>
+                <label>Contenido</label>
+                <textarea name="contenido" required></textarea>
+                <button type="submit" class="btn">Previsualizar PDF</button>
+            </form>
+            <iframe id="pdfPreview" style="width:100%;height:400px;border:1px solid #ccc;margin-top:1rem;display:none;"></iframe>
         </div>
         <div id="firmas" class="section">
             <h3>Firma Electrónica</h3>
@@ -211,6 +216,22 @@
                     mensaje.classList.add('error');
                     mensaje.style.display = 'block';
                 }
+            });
+            document.getElementById('pdfForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                fetch('/documentos/generar-pdf/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                })
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const iframe = document.getElementById('pdfPreview');
+                    iframe.src = url;
+                    iframe.style.display = 'block';
+                });
             });
             function getCookie(name) {
                 let cookieValue = null;

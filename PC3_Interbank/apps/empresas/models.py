@@ -25,3 +25,4 @@ class Estrategia(models.Model):
 
     def __str__(self):
         return f"Estrategia {self.id} para {self.empresa.razon_social}"
+

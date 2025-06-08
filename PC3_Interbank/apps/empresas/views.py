@@ -9,9 +9,11 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
+from django.contrib.auth import authenticate, login
 
 from .serializers import EmpresaRegistroSerializer
 from .models import Empresa
+from apps.users.models import Usuario
 
 class PanelEmpresaView(APIView):
     permission_classes = [IsAuthenticated]
@@ -31,7 +33,15 @@ class EmpresaRegistroView(APIView):
     def post(self, request):
         serializer = EmpresaRegistroSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            empresa = serializer.save()
+            # Crear usuario administrador de empresa
+            usuario = Usuario.objects.create_user(
+                correo=empresa.correo,
+                password=request.data.get('password'),
+                nombre=empresa.representante,
+                empresa=empresa,
+                rol='empresa'
+            )
             return Response({'mensaje': 'Empresa registrada correctamente.'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -41,19 +51,15 @@ class EmpresaLoginView(APIView):
     def post(self, request):
         correo = request.data.get('correo')
         password = request.data.get('password')
-        try:
-            empresa = Empresa.objects.get(correo=correo)
-            print("Contraseña enviada:", password)
-            print("Contraseña en BD:", empresa.password)
-            print("Check:", check_password(password, empresa.password))
-            if empresa.estado != 'activo':
-                return Response({'error': 'Tu empresa aún no está activa.'}, status=403)
-            if check_password(password, empresa.password):
+        user = authenticate(request, correo=correo, password=password)
+        if user is not None:
+            if user.empresa and user.empresa.estado == 'activo':
+                login(request, user)
                 return Response({'mensaje': 'Login exitoso.'})
             else:
-                return Response({'error': 'Contraseña incorrecta.'}, status=400)
-        except Empresa.DoesNotExist:
-            return Response({'error': 'Correo no registrado.'}, status=400)
+                return Response({'error': 'Tu empresa aún no está activa o no tienes empresa asociada.'}, status=403)
+        else:
+            return Response({'error': 'Credenciales incorrectas.'}, status=400)
 
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])
@@ -93,7 +99,7 @@ def dashboard_empresa(request):
 @login_required(login_url='/login/')
 @require_http_methods(["GET", "POST"])
 def perfil_empresa(request):
-    empresa = Empresa.objects.filter(correo=request.user.correo).first()
+    empresa = request.user.empresa
     if request.method == "POST":
         data = request.POST
         empresa.razon_social = data.get('razon_social', empresa.razon_social)
@@ -102,7 +108,6 @@ def perfil_empresa(request):
         empresa.telefono = data.get('telefono', empresa.telefono)
         empresa.save()
         return JsonResponse({'mensaje': 'Perfil actualizado correctamente.'})
-    # Para GET, devuelve los datos de la empresa
     return JsonResponse({
         'razon_social': empresa.razon_social,
         'ruc': empresa.ruc,
