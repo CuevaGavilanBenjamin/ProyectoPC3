@@ -10,23 +10,24 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import EmpresaRegistroSerializer
 from .models import Empresa
 from apps.users.models import Usuario
 
+def dashboard_empresa(request):
+    return render(request, 'dashboard.html')
+
 class PanelEmpresaView(APIView):
     permission_classes = [IsAuthenticated]
-
     def get(self, request):
         if request.user.rol != 'empresa':
             return Response({'error': 'Acceso no autorizado'}, status=403)
-
         return Response({
             "mensaje": f"Hola {request.user.nombre}, bienvenido al panel de empresa.",
             "rol": request.user.rol
         })
-
 class EmpresaRegistroView(APIView):
     permission_classes = []  # Público
 
@@ -54,13 +55,33 @@ class EmpresaLoginView(APIView):
         user = authenticate(request, correo=correo, password=password)
         if user is not None:
             if user.empresa and user.empresa.estado == 'activo':
-                login(request, user)
-                return Response({'mensaje': 'Login exitoso.'})
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                    'nombre': user.nombre,
+                    'rol': user.rol,
+                    'mensaje': 'Login exitoso.'
+                })
             else:
                 return Response({'error': 'Tu empresa aún no está activa o no tienes empresa asociada.'}, status=403)
         else:
             return Response({'error': 'Credenciales incorrectas.'}, status=400)
+class PerfilEmpresaView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        empresa = getattr(request.user, 'empresa', None)
+        if not empresa:
+            return Response({'error': 'No tienes empresa asociada.'}, status=400)
+        return Response({
+            'razon_social': empresa.razon_social,
+            'ruc': empresa.ruc,
+            'representante': empresa.representante,
+            'correo': empresa.correo,
+            'direccion': empresa.direccion,
+            'telefono': empresa.telefono,
+        })
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])
 def eliminar_empresa(request, empresa_id):
@@ -91,10 +112,6 @@ def registro_empresa(request):
 def login_empresa(request):
     return render(request, 'login.html')
 
-@login_required(login_url='/login/')
-def dashboard_empresa(request):
-    # Aquí puedes pasar datos de la empresa si lo deseas
-    return render(request, 'dashboard.html')
 
 @login_required(login_url='/login/')
 @require_http_methods(["GET", "POST"])

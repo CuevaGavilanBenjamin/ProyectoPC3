@@ -1,38 +1,113 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="es">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Iniciar Sesión | PC3</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body { background: #f5f5f5; font-family: 'Segoe UI', Arial, sans-serif; }
-        .login-container {
-            max-width: 370px; margin: 3rem auto; background: #fff; border-radius: 14px;
-            box-shadow: 0 4px 24px rgba(0,149,59,0.10); padding: 2.5rem 2rem 2rem 2rem;
-        }
-        h2 { text-align: center; color: #00953b; margin-bottom: 1.5rem; }
-        form label { display: block; margin-bottom: 0.3rem; font-weight: 500; }
-        form input {
-            width: 100%; padding: 0.7rem; margin-bottom: 1.1rem; border: 1.5px solid #b6e2c7;
-            border-radius: 7px; font-size: 1rem; background: #f8fff8; transition: border 0.2s;
-        }
-        form input:focus { border-color: #00953b; outline: none; }
-        .btn {
-            width: 100%; background: #00953b; color: #fff; padding: 0.9rem; border: none;
-            border-radius: 30px; font-size: 1.1rem; font-weight: 600; cursor: pointer; margin-top: 0.5rem;
-            transition: background 0.2s;
-        }
-        .btn:hover { background: #007a2f; }
-        .mensaje {
-            margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 7px; font-size: 1rem; display: none;
-        }
-        .mensaje.success { background: #e8fbe9; color: #00953b; border: 1.5px solid #00953b; display: block; }
-        .mensaje.error { background: #ffeaea; color: #b30000; border: 1.5px solid #b30000; display: block; }
-        .enlace-registro { text-align: center; margin-top: 1.2rem; }
-        .enlace-registro a { color: #00953b; text-decoration: none; font-weight: 500; }
-        .enlace-registro a:hover { text-decoration: underline; }
-    </style>
-</head>
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Iniciar Sesión | PC3</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {
+                background: #f5f5f5;
+                font-family: 'Segoe UI', Arial, sans-serif;
+            }
+
+            .login-container {
+                max-width: 370px;
+                margin: 3rem auto;
+                background: #fff;
+                border-radius: 14px;
+                box-shadow: 0 4px 24px rgba(0, 149, 59, 0.10);
+                padding: 2.5rem 2rem 2rem 2rem;
+            }
+
+            h2 {
+                text-align: center;
+                color: #00953b;
+                margin-bottom: 1.5rem;
+            }
+
+            form label {
+                display: block;
+                margin-bottom: 0.3rem;
+                font-weight: 500;
+            }
+
+            form input {
+                width: 100%;
+                padding: 0.7rem;
+                margin-bottom: 1.1rem;
+                border: 1.5px solid #b6e2c7;
+                border-radius: 7px;
+                font-size: 1rem;
+                background: #f8fff8;
+                transition: border 0.2s;
+            }
+
+            form input:focus {
+                border-color: #00953b;
+                outline: none;
+            }
+
+            .btn {
+                width: 100%;
+                background: #00953b;
+                color: #fff;
+                padding: 0.9rem;
+                border: none;
+                border-radius: 30px;
+                font-size: 1.1rem;
+                font-weight: 600;
+                cursor: pointer;
+                margin-top: 0.5rem;
+                transition: background 0.2s;
+            }
+
+            .btn:hover {
+                background: #007a2f;
+            }
+
+            .mensaje {
+                margin-bottom: 1rem;
+                padding: 0.8rem 1rem;
+                border-radius: 7px;
+                font-size: 1rem;
+                display: none;
+            }
+
+            .mensaje.success {
+                background: #e8fbe9;
+                color: #00953b;
+                border: 1.5px solid #00953b;
+                display: block;
+            }
+
+            .mensaje.error {
+                background: #ffeaea;
+                color: #b30000;
+                border: 1.5px solid #b30000;
+                display: block;
+            }
+
+            .enlace-registro {
+                text-align: center;
+                margin-top: 1.2rem;
+            }
+
+            .enlace-registro a {
+                color: #00953b;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+            .enlace-registro a:hover {
+                text-decoration: underline;
+            }
+        </style>
+    </head>
+
 <body>
     <div class="login-container">
         <h2>Iniciar Sesión</h2>
@@ -50,41 +125,7 @@
             ¿No tienes cuenta? <a href="/registro-empresa/">Regístrate</a>
         </div>
     </div>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const mensaje = document.getElementById('mensaje');
-            mensaje.className = 'mensaje';
-            mensaje.style.display = 'none';
-
-            const correo = document.getElementById('correo').value.trim();
-            const password = document.getElementById('password').value;
-
-            try {
-                const response = await fetch('/api/login/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify({ correo, password })
-                });
-                const result = await response.json();
-
-                if (response.ok) {
-                    mensaje.textContent = result.mensaje || 'Login exitoso.';
-                    mensaje.classList.add('success');
-                    mensaje.style.display = 'block';
-                    // Redirige al dashboard si es necesario
-                    setTimeout(() => { window.location.href = '/dashboard/'; }, 1200);
-                } else {
-                    mensaje.textContent = result.error || 'Credenciales incorrectas.';
-                    mensaje.classList.add('error');
-                    mensaje.style.display = 'block';
-                }
-            } catch (error) {
-                mensaje.textContent = 'Error de conexión. Intenta nuevamente.';
-                mensaje.classList.add('error');
-                mensaje.style.display = 'block';
-            }
-        });
-    </script>
+    <script src="{% static 'js/login.js' %}"></script>
 </body>
+
 </html>
