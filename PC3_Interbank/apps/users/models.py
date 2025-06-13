@@ -1,5 +1,3 @@
-# apps/users/models.py
-
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from apps.empresas.models import Empresa
@@ -18,7 +16,6 @@ class UsuarioManager(BaseUserManager):
         extra_fields.setdefault('rol', 'superadmin')
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-
         return self.create_user(correo, password, **extra_fields)
 
 class Usuario(AbstractBaseUser, PermissionsMixin):
@@ -26,7 +23,16 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     nombre = models.CharField(max_length=255)
     dni = models.CharField(max_length=8, unique=True, blank=True, null=True)
     correo = models.EmailField(unique=True)
-    rol = models.CharField(max_length=20, choices=[('empresa', 'Empresa'), ('mentor', 'Mentor'), ('superadmin', 'Superadmin')])
+    rol = models.CharField(
+        max_length=20,
+        choices=[
+            ('empresa', 'Administrador Empresa'),
+            ('mentor', 'Mentor'),
+            ('superadmin', 'Superadmin'),
+            ('editor', 'Editor'),
+            ('lector', 'Lector'),
+        ]
+    )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -36,3 +42,5 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     objects = UsuarioManager()
 
+    def __str__(self):
+        return self.nombre or self.correo

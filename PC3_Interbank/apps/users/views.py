@@ -1,7 +1,42 @@
-from django.shortcuts import render
-
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import CustomTokenObtainPairSerializer
+from rest_framework import generics, permissions
+from .serializers import CustomTokenObtainPairSerializer,UsuarioSerializer
+from .models import Usuario
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+class DashboardPerfilView(LoginRequiredMixin, TemplateView):
+    template_name = "perfil/perfil.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_section'] = 'perfil'
+        context['active_tab'] = 'perfil'
+        return context
+
+class DashboardUsuariosView(LoginRequiredMixin, TemplateView):
+    template_name = "perfil/usuarios.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_section'] = 'perfil'
+        context['active_tab'] = 'usuarios'
+        return context
+    
+class UsuarioListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = UsuarioSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        empresa = self.request.user.empresa
+        return Usuario.objects.filter(empresa=empresa).exclude(rol='superadmin')
+
+    def perform_create(self, serializer):
+        # Asocia el usuario a la empresa del usuario autenticado
+        serializer.save(empresa=self.request.user.empresa)
+
+class UsuarioRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Usuario.objects.all()
+    serializer_class = UsuarioSerializer
+    permission_classes = [permissions.IsAuthenticated]

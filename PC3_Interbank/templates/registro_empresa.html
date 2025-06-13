@@ -134,7 +134,7 @@
             mensaje.className = 'mensaje';
             mensaje.style.display = 'none';
 
-            // Validaciones en frontend
+            // Validaciones frontend (ya las tienes)
             const ruc = document.getElementById('ruc').value.trim();
             const correo = document.getElementById('correo').value.trim();
             const password = document.getElementById('password').value;
@@ -167,10 +167,10 @@
 
             const data = {
                 razon_social: document.getElementById('razon_social').value,
-                ruc: ruc,
+                ruc: document.getElementById('ruc').value,
                 representante: document.getElementById('representante').value,
-                correo: correo,
-                password: password,
+                correo: document.getElementById('correo').value,
+                password: document.getElementById('password').value,
                 direccion: document.getElementById('direccion').value,
                 telefono: document.getElementById('telefono').value
             };
