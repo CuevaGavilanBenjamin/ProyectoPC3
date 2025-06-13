@@ -1,43 +1,55 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from django.views.decorators.http import require_http_methods
-from django.http import JsonResponse, HttpResponse
+from rest_framework import generics, permissions
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import BaseRenderer
+from django.http import HttpResponse
 from io import BytesIO
 from reportlab.pdfgen import canvas
-from .models import Documento  # Ajusta el nombre del modelo si es diferente
+from .models import Documento
+from .serializers import DocumentoSerializer
 
-@login_required(login_url='/login/')
-@require_http_methods(["GET", "POST"])
-def documentos_empresa(request):
-    empresa = request.user.empresa
-    if not empresa:
-        return JsonResponse({'error': 'No tienes empresa asociada.'}, status=400)
-    if request.method == "POST":
-        archivo = request.FILES.get('archivo')
-        nombre = request.POST.get('nombre')
-        if archivo and nombre:
-            doc = Documento.objects.create(
-                empresa=empresa,
-                nombre=nombre,
-                archivo=archivo
-            )
-            return JsonResponse({'mensaje': 'Documento subido correctamente.'})
-        return JsonResponse({'error': 'Faltan datos.'}, status=400)
-    docs = Documento.objects.filter(empresa=empresa).values('id', 'nombre', 'archivo', 'fecha_subida')
-    return JsonResponse(list(docs), safe=False)
+# Listar y crear documentos
+class DocumentoEmpresaAPIView(generics.ListCreateAPIView):
+    serializer_class = DocumentoSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-def generar_pdf(request):
-    if request.method == "POST":
-        nombre = request.POST.get('nombre', 'Documento')
-        contenido = request.POST.get('contenido', '')
+    def get_queryset(self):
+        return Documento.objects.filter(empresa=self.request.user.empresa)
+
+    def perform_create(self, serializer):
+        serializer.save(empresa=self.request.user.empresa)
+
+# Recuperar, actualizar y eliminar un documento específico
+class DocumentoDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = DocumentoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Documento.objects.filter(empresa=self.request.user.empresa)
+
+class PDFRenderer(BaseRenderer):
+    media_type = 'application/pdf'
+    format = 'pdf'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        return data
+# Generar PDF de un documento específico
+class GenerarPDFAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    renderer_classes = [PDFRenderer]
+
+    def get(self, request, pk):
+        doc = Documento.objects.filter(pk=pk, empresa=request.user.empresa).first()
+        if not doc:
+            return HttpResponse("Documento no encontrado", status=404)
         buffer = BytesIO()
         p = canvas.Canvas(buffer)
-        p.drawString(100, 800, nombre)
-        p.drawString(100, 780, contenido)
+        p.drawString(100, 800, doc.nombre)
+        p.drawString(100, 780, doc.contenido or '')
         p.showPage()
         p.save()
         buffer.seek(0)
-        response = HttpResponse(buffer, content_type='application/pdf')
-        response['Content-Disposition'] = 'inline; filename="documento.pdf"'
+        pdf_bytes = buffer.getvalue()
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="{doc.nombre}.pdf"'
         return response
-    return HttpResponse("Método no permitido", status=405)

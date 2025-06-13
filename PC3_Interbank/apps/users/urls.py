@@ -1,6 +1,7 @@
 from django.urls import path
-#from .views import PanelEmpresaView
+from . import views
 
 urlpatterns = [
-   # path('panel/', PanelEmpresaView.as_view(), name='panel_empresa'),
+   path('api/usuarios/', views.UsuarioListCreateAPIView.as_view(), name='usuarios_api'),
+   path('api/usuarios/<int:pk>/', views.UsuarioRetrieveUpdateDestroyAPIView.as_view(), name='usuario_api'),
 ]
