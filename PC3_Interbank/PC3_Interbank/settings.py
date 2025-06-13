@@ -172,3 +172,4 @@ ERRORES_VALIDACION = {
     "correo": ["Este correo ya está registrado."],
     "ruc": ["El RUC debe tener exactamente 11 dígitos numéricos."]
 }
+

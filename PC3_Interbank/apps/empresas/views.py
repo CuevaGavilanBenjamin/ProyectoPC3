@@ -11,6 +11,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.mail import send_mail
 
 from .serializers import EmpresaRegistroSerializer
 from .models import Empresa
@@ -35,13 +36,20 @@ class EmpresaRegistroView(APIView):
         serializer = EmpresaRegistroSerializer(data=request.data)
         if serializer.is_valid():
             empresa = serializer.save()
-            # Crear usuario administrador de empresa
             usuario = Usuario.objects.create_user(
                 correo=empresa.correo,
                 password=request.data.get('password'),
                 nombre=empresa.representante,
                 empresa=empresa,
                 rol='empresa'
+            )
+            # Enviar correo de bienvenida
+            send_mail(
+                subject='Bienvenido a PC3',
+                message=f'Hola {empresa.representante}, tu empresa "{empresa.razon_social}" ha sido registrada exitosamente en PC3.',
+                from_email=None,  # Usará DEFAULT_FROM_EMAIL
+                recipient_list=[empresa.correo],
+                fail_silently=True,
             )
             return Response({'mensaje': 'Empresa registrada correctamente.'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
