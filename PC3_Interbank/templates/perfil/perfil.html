@@ -1,0 +1,24 @@
+{% extends "dashboard_perfil.html" %}
+{# templates/perfil/perfil.html #}
+{% load static %}
+{% block perfil_content %}
+<form id="perfilForm">
+    <label>Razón Social</label>
+    <input type="text" id="razon_social" name="razon_social" required>
+    <label>RUC</label>
+    <input type="text" id="ruc" name="ruc" readonly>
+    <label>Representante</label>
+    <input type="text" id="representante" name="representante" required>
+    <label>Correo</label>
+    <input type="email" id="correo" name="correo" readonly>
+    <label>Dirección</label>
+    <input type="text" id="direccion" name="direccion">
+    <label>Teléfono</label>
+    <input type="text" id="telefono" name="telefono">
+    <button type="submit" class="btn">Guardar cambios</button>
+    <div id="perfilMensaje" class="mensaje"></div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/perfil.js' %}"></script>
+{% endblock %}

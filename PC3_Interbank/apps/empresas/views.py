@@ -11,13 +11,12 @@ from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from .serializers import EmpresaRegistroSerializer
 from .models import Empresa
 from apps.users.models import Usuario
 
 def dashboard_empresa(request):
-    return render(request, 'dashboard.html')
+    return render(request, 'dashboard_base.html')
 
 class PanelEmpresaView(APIView):
     permission_classes = [IsAuthenticated]
@@ -67,30 +66,41 @@ class EmpresaLoginView(APIView):
                 return Response({'error': 'Tu empresa aún no está activa o no tienes empresa asociada.'}, status=403)
         else:
             return Response({'error': 'Credenciales incorrectas.'}, status=400)
-class PerfilEmpresaView(APIView):
+class PerfilEmpresaAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        empresa = getattr(request.user, 'empresa', None)
-        if not empresa:
-            return Response({'error': 'No tienes empresa asociada.'}, status=400)
-        return Response({
-            'razon_social': empresa.razon_social,
-            'ruc': empresa.ruc,
-            'representante': empresa.representante,
-            'correo': empresa.correo,
-            'direccion': empresa.direccion,
-            'telefono': empresa.telefono,
-        })
+        empresa = request.user.empresa
+        serializer = EmpresaRegistroSerializer(empresa)
+        return Response(serializer.data)
+
+    def put(self, request):
+        empresa = request.user.empresa
+        serializer = EmpresaRegistroSerializer(empresa, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+    
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])
 def eliminar_empresa(request, empresa_id):
-    try:
-        empresa = Empresa.objects.get(id=empresa_id)
-        empresa.delete()
-        return Response({'mensaje': 'Empresa eliminada correctamente.'})
-    except Empresa.DoesNotExist:
-        return Response({'error': 'Empresa no encontrada.'}, status=404)
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+    empresa.delete()
+    return Response({'mensaje': 'Empresa eliminada correctamente.'})
+
+@api_view(['GET', 'PUT'])
+@permission_classes([IsAuthenticated])
+def perfil_empresa(request):
+    empresa = request.user.empresa
+    if request.method == "PUT":
+        serializer = EmpresaRegistroSerializer(empresa, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'mensaje': 'Perfil actualizado correctamente.'})
+        return Response(serializer.errors, status=400)
+    serializer = EmpresaRegistroSerializer(empresa)
+    return Response(serializer.data)
 
 @staff_member_required
 def lista_empresas(request):
@@ -111,26 +121,4 @@ def registro_empresa(request):
 
 def login_empresa(request):
     return render(request, 'login.html')
-
-
-@login_required(login_url='/login/')
-@require_http_methods(["GET", "POST"])
-def perfil_empresa(request):
-    empresa = request.user.empresa
-    if request.method == "POST":
-        data = request.POST
-        empresa.razon_social = data.get('razon_social', empresa.razon_social)
-        empresa.representante = data.get('representante', empresa.representante)
-        empresa.direccion = data.get('direccion', empresa.direccion)
-        empresa.telefono = data.get('telefono', empresa.telefono)
-        empresa.save()
-        return JsonResponse({'mensaje': 'Perfil actualizado correctamente.'})
-    return JsonResponse({
-        'razon_social': empresa.razon_social,
-        'ruc': empresa.ruc,
-        'representante': empresa.representante,
-        'correo': empresa.correo,
-        'direccion': empresa.direccion,
-        'telefono': empresa.telefono,
-    })
 
