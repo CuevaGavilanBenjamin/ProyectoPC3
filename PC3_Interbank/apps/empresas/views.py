@@ -20,9 +20,6 @@ from .serializers import EmpresaRegistroSerializer, EstrategiaGeneralSerializer,
 from .models import Empresa, EstrategiaGeneral, PlanAccion, Tarea
 from apps.users.models import Usuario
 
-def dashboard_empresa(request):
-    return render(request, 'dashboard_base.html')
-
 class PanelEmpresaView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):

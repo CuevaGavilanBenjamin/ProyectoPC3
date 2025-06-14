@@ -1,5 +1,10 @@
 from django.db import models
-from apps.users.models import Usuario
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+import hashlib
+import json
+
+User = get_user_model()
 
 class Documento(models.Model):
     empresa = models.ForeignKey('empresas.Empresa', on_delete=models.CASCADE)
@@ -21,12 +26,11 @@ class Documento(models.Model):
         return self.nombre
 class Firma(models.Model):
     documento = models.ForeignKey('Documento', on_delete=models.CASCADE, related_name='firmas')
-    firmante = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    estado = models.CharField(max_length=20, choices=[('pendiente', 'Pendiente'), ('firmado', 'Firmado'), ('rechazado', 'Rechazado')], default='pendiente')
-    fecha_solicitud = models.DateTimeField(auto_now_add=True)
+    firmante = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    estado = models.CharField(max_length=20, choices=[('pendiente', 'Pendiente'), ('firmado', 'Firmado')], default='pendiente')
     fecha_firma = models.DateTimeField(null=True, blank=True)
-    proveedor = models.CharField(max_length=50, blank=True, null=True)  # eSignatura.pe, Serpost, etc.
+    ip_firma = models.GenericIPAddressField(null=True, blank=True)
     hash_documento = models.CharField(max_length=128, blank=True, null=True)
     sello_tiempo = models.DateTimeField(null=True, blank=True)
+    trazabilidad = models.JSONField(default=dict, blank=True)
     certificado = models.TextField(blank=True, null=True)
-    observaciones = models.TextField(blank=True, null=True)

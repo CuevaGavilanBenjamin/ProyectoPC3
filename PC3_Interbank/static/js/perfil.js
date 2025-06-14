@@ -1,65 +1,90 @@
-// static/js/perfil.js
-
 document.addEventListener('DOMContentLoaded', function () {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-        window.location.href = '/login/';
-        return;
+    const rol = localStorage.getItem('rol');
+    const access = localStorage.getItem('access_token');
+
+    // Mostrar campos según el rol
+    if (rol === 'empresa') {
+        document.getElementById('empresaFields').style.display = '';
+        document.getElementById('usuarioFields').style.display = 'none';
+    } else if (rol === 'editor' || rol === 'lector') {
+        document.getElementById('empresaFields').style.display = 'none';
+        document.getElementById('usuarioFields').style.display = '';
     }
 
-    // Cargar datos del perfil de la empresa
-    fetch('/empresas/api/perfil/', {
+    // Cargar datos del perfil
+    fetch('/users/api/cuenta/', {
         headers: {
-            'Authorization': 'Bearer ' + token,
+            'Authorization': 'Bearer ' + access,
             'Accept': 'application/json'
         }
     })
-        .then(r => {
-            if (r.status === 401 || r.status === 403) {
-                window.location.href = '/login/';
-                return;
-            }
-            return r.json();
-        })
+        .then(r => r.json())
         .then(data => {
-            if (!data) return;
-            document.getElementById('razon_social').value = data.razon_social || '';
-            document.getElementById('ruc').value = data.ruc || '';
-            document.getElementById('representante').value = data.representante || '';
             document.getElementById('correo').value = data.correo || '';
-            document.getElementById('direccion').value = data.direccion || '';
-            document.getElementById('telefono').value = data.telefono || '';
+            if (rol === 'empresa' && data.empresa) {
+                document.getElementById('razon_social').value = data.empresa.razon_social || '';
+                document.getElementById('ruc').value = data.empresa.ruc || '';
+                document.getElementById('representante').value = data.empresa.representante || '';
+                document.getElementById('direccion').value = data.empresa.direccion || '';
+                document.getElementById('telefono').value = data.empresa.telefono || '';
+            } else if (rol === 'editor' || rol === 'lector') {
+                document.getElementById('nombre').value = data.nombre || '';
+                document.getElementById('dni').value = data.dni || '';
+            }
         });
 
     // Guardar cambios en el perfil
-    document.getElementById('perfilForm').addEventListener('submit', async function (e) {
+    document.getElementById('perfilForm').addEventListener('submit', function (e) {
         e.preventDefault();
-        const formData = new FormData(this);
         const mensaje = document.getElementById('perfilMensaje');
+        mensaje.textContent = '';
         mensaje.className = 'mensaje';
-        mensaje.style.display = 'none';
-        try {
-            const response = await fetch('/empresas/api/perfil/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Accept': 'application/json'
-                }
-            });
-            const result = await response.json();
-            if (response.ok) {
-                mensaje.textContent = result.mensaje;
-                mensaje.classList.add('success');
-            } else {
-                mensaje.textContent = result.error || 'Error al actualizar.';
-                mensaje.classList.add('error');
-            }
-            mensaje.style.display = 'block';
-        } catch {
-            mensaje.textContent = 'Error de conexión.';
-            mensaje.classList.add('error');
-            mensaje.style.display = 'block';
+
+        let payload = { correo: document.getElementById('correo').value };
+
+        if (rol === 'empresa') {
+            payload.empresa = {
+                razon_social: document.getElementById('razon_social').value,
+                ruc: document.getElementById('ruc').value,
+                representante: document.getElementById('representante').value,
+                direccion: document.getElementById('direccion').value,
+                telefono: document.getElementById('telefono').value
+            };
+        } else if (rol === 'editor' || rol === 'lector') {
+            payload.nombre = document.getElementById('nombre').value;
+            payload.dni = document.getElementById('dni').value;
         }
+
+        fetch('/users/api/cuenta/', {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + access,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+            .then(r => r.json())
+            .then(data => {
+                mensaje.textContent = data.mensaje || 'Cambios guardados correctamente.';
+                mensaje.classList.add('success');
+            })
+            .catch(() => {
+                mensaje.textContent = 'Error al guardar cambios.';
+                mensaje.classList.add('error');
+            });
     });
+
+    // Tabs dinámicas según el rol
+    const tabs = document.getElementById('perfil-tabs');
+    if (tabs) {
+        let html = '';
+        if (rol === 'empresa') {
+            html += `<a href="/users/dashboard/perfil/">Perfil</a>
+                     <a href="/users/dashboard/usuarios/">Usuarios</a>`;
+        } else if (rol === 'editor' || rol === 'lector') {
+            html += `<a href="/users/dashboard/perfil/">Perfil</a>`;
+        }
+        tabs.innerHTML = html;
+    }
 });
