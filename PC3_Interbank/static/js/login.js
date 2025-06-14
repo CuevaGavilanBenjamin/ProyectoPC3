@@ -24,7 +24,32 @@ document.getElementById('loginForm').addEventListener('submit', async function (
             mensaje.textContent = result.mensaje || 'Login exitoso.';
             mensaje.classList.add('success');
             mensaje.style.display = 'block';
-            setTimeout(() => { window.location.href = '/dashboard/'; }, 1200);
+
+            // Consulta el rol del usuario y guárdalo en localStorage
+            fetch('/users/api/cuenta/', {
+                headers: {
+                    'Authorization': 'Bearer ' + result.access,
+                    'Accept': 'application/json'
+                }
+            })
+                .then(r => r.json())
+                .then(data => {
+                    console.log(data); // <-- Agrega esto para depurar
+                    if (data.rol) {
+                        localStorage.setItem('rol', data.rol);
+                    }
+                    if (data.nombre) {
+                        localStorage.setItem('nombre', data.nombre);
+                    }
+                    // Redirige siempre al dashboard único
+                    window.location.href = '/users/dashboard/';
+                })
+                .catch((err) => {
+                    console.log('Error al consultar cuenta:', err);
+                    alert('Error al consultar cuenta');
+                    window.location.href = '/login/';
+                });
+
         } else {
             mensaje.textContent = result.error || 'Credenciales incorrectas.';
             mensaje.classList.add('error');

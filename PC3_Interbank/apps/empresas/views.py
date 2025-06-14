@@ -17,9 +17,6 @@ from .serializers import EmpresaRegistroSerializer
 from .models import Empresa
 from apps.users.models import Usuario
 
-def dashboard_empresa(request):
-    return render(request, 'dashboard_base.html')
-
 class PanelEmpresaView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
