@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
-    home, registro_empresa, login_empresa,
-    EmpresaRegistroView, EmpresaLoginView, PanelEmpresaView,PerfilEmpresaAPIView,
+    home, registro_empresa, login_empresa, dashboard_empresa,estrategias_view,
+    EmpresaRegistroView, EmpresaLoginView, PanelEmpresaView,PerfilEmpresaAPIView,SugerenciasEstrategiasView,BenchmarkingView,TareasPlanView,CompletarTareaView,ChecklistPDFView,
     perfil_empresa, eliminar_empresa, lista_empresas
 )
 
@@ -17,4 +17,13 @@ urlpatterns = [
     # Admin/gestion
     path('admin/empresas/', lista_empresas, name='lista_empresas'),
     path('admin/empresas/eliminar/<int:empresa_id>/', eliminar_empresa, name='eliminar_empresa'),
+
+    
+    path('estrategias/', estrategias_view, name='estrategias_view'),
+    path('estrategias/sugerencias/', SugerenciasEstrategiasView.as_view(), name='sugerencias_estrategias'),
+    path('estrategias/benchmarking/', BenchmarkingView.as_view(), name='benchmarking_estrategias'),
+    path('planes/<int:plan_id>/tareas/', TareasPlanView.as_view(), name='tareas_plan'),
+    path('tareas/<int:tarea_id>/completar/', CompletarTareaView.as_view(), name='completar_tarea'),
+    path('planes/checklist/pdf/', ChecklistPDFView.as_view(), name='checklist_pdf'),
 ]
+
